@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-our $VERSION = '0.9';
+our $VERSION = '1.0';
 
 # APRS Schedule generator for Direwolf
 # Based on http://www.aprs.org/info/netsked.txt
@@ -16,33 +16,37 @@ our $VERSION = '0.9';
 # This perl program is generic, so we use our module for station-specific settings
 use aprsobjects;
 
-# Get default settings
+# Get default settings from our aprsobjects module
 my ( $startinterval, $delayinterval, @outputs ) = get_defaults();
 
-# Get our objects from our aprsobjects package
+# Get our objects from our aprsobjects module
 my (@objects) = get_objects();
 
+# Get our initial delay for advertisements which will be incremented for each additional object
 my $delay = $startinterval;
 
+# Iterate through each entry in the @objects array
 foreach my $entry (@objects) {
     my ($DAY,    $ENABLED, $STARTTIME, $ENDTIME, $TIMEBEFORE, $OBJNAME,
         $MHZ,    $LAT,     $LON,       $FREQ,    $OFFSET,     $TONE,
         $HEIGHT, $POWER,   $SYMBOL,    $COMMENT
     ) = split( /\|/xsm, $entry );
 
-    # Start advertising $TIMEBEFORE minutes before $STARTTIME
+    # Determine the time at which we start advertising the object before the official start time
     my $start;
 
     # Only modify the start time if we're a timed object
     if ( $STARTTIME ne 0 && $ENDTIME ne 0 ) {
+        # Set our time before to a negative value so we subtract time from our official start time
         my $timebefore = $TIMEBEFORE * -1;
+        # Update the start value to the new time
         $start = update_delay( $STARTTIME, ${timebefore} );
     }
     else {
         $start = $STARTTIME;
     }
 
-    # We handle start/end as simple numbers, so strip out the colon
+    # We compare start/end as simple numbers, so strip out the colon
     $start =~ s/://g;
     my $end = $ENDTIME;
     $end =~ s/://g;
@@ -51,11 +55,14 @@ foreach my $entry (@objects) {
     my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst )
         = localtime();
     my $time = sprintf( "%02d%02d", $hour, $min );
+
+    # Determine if this object matches the day or is an every-day object
     if ( $ENABLED && ( $DAY == $wday || $DAY == -1 ) ) {
+        # Determine if the object should be advertised based on comparing our adjusted start time or always if start/end are 0
         if (   ( $STARTTIME eq 0 && $ENDTIME eq 0 )
             || ( ( $start <= $time ) && ( $time <= $end ) ) )
         {
-            # Handle data which might be empty
+            # Handle fields which are optional and may be empty
             my $tone_string = '';
             if ($TONE) {
                 $tone_string = ' TONE=' . $TONE;
@@ -107,6 +114,8 @@ foreach my $entry (@objects) {
                     . $height_string
                     . $power_string
                     . $comment_string . "\n";
+
+                # Update the delay value so each object advertises $delayinterval seconds after the previous one
                 $delay = update_delay( $delay, $delayinterval );
             }
         }
@@ -114,7 +123,7 @@ foreach my $entry (@objects) {
 }
 
 # Update time reference to reflect desired additional delay
-# Used for HH:MM and MM:SS but the calculations are the same
+# Used for HH:MM and MM:SS but the calculations are the same.  Pass in negative numbers to get an earlier time.
 sub update_delay {
     my ( $delaytmp, $delayintervaltmp ) = @_;
     my ( $sec_min, $sec_sec ) = split( /:/xsm, $delaytmp );

@@ -36,7 +36,7 @@ There are several defaults to set in the get_defaults function
  * ENABLED - 0 entry is disabled, 1 enabled
  * STARTTIME/ENDTIME - Start/End = 0 implies broadcast all day, HH:MM format
  * TIMEBEFORE - Number of minutes to start advertising object before STARTTIME
- * OBJNAME - Max 9 characters
+ * OBJNAME - Name of APRS Object, max 9 characters
  * MHZ - Frequency associated with this object
  * LAT/LON - Latitude/Longitude of object
  * FREQ - How often to beacon object
