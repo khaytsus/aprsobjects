@@ -2,7 +2,6 @@
 
 use strict;
 use warnings;
-use Data::Dumper;
 
 our $VERSION = '1.2';
 
@@ -83,7 +82,7 @@ foreach my $entry (@objects) {
     my $start;
 
     # Only modify the start time if we're a timed object
-    if ( $STARTTIME ne 0 && $ENDTIME ne 0 ) {
+    if ( $STARTTIME ne "0" && $ENDTIME ne "0" ) {
 
 # Set our time before to a negative value so we subtract time from our official start time
         my $timebefore = $TIMEBEFORE * -1;
@@ -98,9 +97,9 @@ foreach my $entry (@objects) {
     my $time = sprintf( "%02d%02d", $lt_hour, $lt_min );
 
     # We compare start/end as simple numbers, so strip out the colon
-    $start =~ s/://g;
+    $start =~ s/://xg;
     my $end = $ENDTIME;
-    $end =~ s/://g;
+    $end =~ s/://xg;
 
 # Determine if this object matches the day, is an every-day object, or is dated with todays date
 # If the object is enabled make sure that dated events are only matched on their proper date regardless
@@ -108,10 +107,10 @@ foreach my $entry (@objects) {
     if ($ENABLED
 
         # This object matches a single-day event, not a dated event
-        && ((   ( $DOW eq $lt_wday && $DAY !~ /\d+/ )
+        && ((   ( $DOW eq $lt_wday && $DAY !~ /\d+/x )
 
                 # This object matches a daily event, not a dated event
-                || ( $DOW eq -1 && $DAY !~ /\d+/ )
+                || ( $DOW eq "-1" && $DAY !~ /\d+/x )
             )
 
 # If it's not a single or daily event, test to see if this object matches todays date
@@ -121,7 +120,7 @@ foreach my $entry (@objects) {
     {
 
 # Determine if the object should be advertised based on comparing our adjusted start time or always if start/end are 0
-        if (   ( $STARTTIME eq 0 && $ENDTIME eq 0 )
+        if (   ( $STARTTIME eq "0" && $ENDTIME eq "0" )
             || ( ( $start <= $time ) && ( $time <= $end ) ) )
         {
             # Handle fields which are optional and may be empty
@@ -155,12 +154,12 @@ foreach my $entry (@objects) {
             my $datestring = '';
 
             # If we have a start/end time, and we're not a dated event
-            if ( $STARTTIME && $DAY !~ /\d+/ ) {
+            if ( $STARTTIME && $DAY !~ /\d+/x ) {
                 $datestring = ' (' . $STARTTIME . ' -' . $ENDTIME . ')';
             }
 
             # If we're a dated event
-            if ( $DAY =~ /\d+/ ) {
+            if ( $DAY =~ /\d+/x ) {
                 $datestring
                     = ' ('
                     . $MONTH . '/'
@@ -212,11 +211,11 @@ sub ical_parse {
     #$ua->timeout(15);
 
     my $file = get($url);
-    if (!defined($file))
-    {
+    if ( !defined($file) ) {
         print "\n## iCal download failed (check URL?)\n";
         return;
     }
+
     my @returnobj;
 
 # Restrict our iCal event parsing to today and tomorrow, as the iCal data is in UTC
@@ -242,8 +241,9 @@ sub ical_parse {
             my $allday      = $todayhash->{$object}->{allday};
             my $DESCRIPTION = $todayhash->{$object}->{DESCRIPTION};
             my $TRANSP      = $todayhash->{$object}->{TRANSP};
+
             # Make sure our hours and minutes are padded to two digits
-            my $start       = sprintf( "%02d:%02d",
+            my $start = sprintf( "%02d:%02d",
                 $DTSTART->{local_c}->{hour},
                 $DTSTART->{local_c}->{minute} );
             my $end = sprintf( "%02d:%02d",
@@ -313,14 +313,14 @@ sub split_description {
     if ($debug) { print "### split_description\n"; }
 
     # We literally get the string \n for carriage returns here.  Yuck?
-    my (@description) = split( /\\n/s, $description );
+    my (@description) = split( /\\n/xs, $description );
 
     my ($timebefore, $objname, $mhz,    $lat,   $lon,    $freq,
         $offset,     $tone,    $height, $power, $symbol, $comment
     );
 
     foreach my $desc (@description) {
-        my ( $key, $value ) = split( /:/, $desc, 2 );
+        my ( $key, $value ) = split( /:/x, $desc, 2 );
         if ( $key eq "TIMEBEFORE" ) { $timebefore = $value; }
         if ( $key eq "OBJNAME" )    { $objname    = $value; }
         if ( $key eq "MHZ" )        { $mhz        = $value; }
@@ -336,7 +336,7 @@ sub split_description {
 # We sometimes get backslashes back from iCal, so we need to strip them back out of the comment
         if ( $key eq "COMMENT" ) {
             $comment = $value;
-            $comment =~ s/\\//g;
+            $comment =~ s/\\//xg;
         }
     }
 
@@ -349,8 +349,8 @@ sub split_description {
 # Update time reference to reflect desired additional delay
 # Used for HH:MM and MM:SS but the calculations are the same.  Pass in negative numbers to get an earlier time.
 sub update_delay {
-    if ($debug) { print "### update_delay\n"; }
     my ( $delaytmp, $delayintervaltmp ) = @_;
+    if ($debug) { print "### update_delay\n"; }
     my ( $sec_min, $sec_sec ) = split( /:/xsm, $delaytmp );
     my $sec_seconds = $sec_min * 60 + $sec_sec + $delayintervaltmp;
     my $min_decmin  = $sec_seconds % 60;

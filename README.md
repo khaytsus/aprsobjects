@@ -75,18 +75,18 @@ Nothing really special to do for the Google Calendar setup, you can name it anyt
 
 When you create calendar entries for your APRS objects you can set the event title to anything you want, this value is not used by this script.  If the event repeats or is an all day event (ie:  A repeater, etc) select those options.  The Description is where the required fields are defined and must be set up correctly or the object won't be properly parsed.  The order of the options does not matter but they must be in the format of FIELD:DATA and separated by a new line.  These are the same fields used in the objects array, so for more details on exactly what the fields mean please see that section.  Example:
 
-TIMEBEFORE:15
-OBJNAME:IRLP-4945
-MHZ:146.940
-LAT:38^02.856N
-LON:84^29.347W
-FREQ:5:00
-OFFSET:-0.600
-TONE:88.5
-HEIGHT:500
-POWER:50
-SYMBOL:I0
-COMMENT:R45m KY4K IRLP node 4945 in Lexington, KY
+TIMEBEFORE:15  
+OBJNAME:IRLP-4945  
+MHZ:146.940  
+LAT:38^02.856N  
+LON:84^29.347W  
+FREQ:5:00  
+OFFSET:-0.600  
+TONE:88.5  
+HEIGHT:500  
+POWER:50  
+SYMBOL:I0  
+COMMENT:R45m KY4K IRLP node 4945 in Lexington, KY  
 
 If you want to disable an object temporarily you can set it as "Available" under the "Show me as" setting near the bottom of the event entry.  Available implies that the object is disabled (not active), Busy implies it is enabled (active).  I use this to adjust recurring events, such as club meetings.  You can also delete the event if that is more appropriate.
 
@@ -105,3 +105,5 @@ Being able to send packets directly to a TNC would be good, such as a KISS inter
  * Or directly in Perl using KISS
   * http://search.cpan.org/~rbdavison/Device-TNC-0.03/lib/Device/TNC/KISS.pm
   * http://search.cpan.org/dist/Ham-APRS-FAP/IS.pm
+
+#### Clean up ugly event date check nested if statement
