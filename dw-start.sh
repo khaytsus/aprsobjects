@@ -26,7 +26,7 @@ if [ $pid -gt 0 ]; then
         killall direwolf
         sleep 5 
     else
-        echo "Config files match, exiting"
+        echo "Config files match, exiting dw-start script"
         exit
         fi
 fi
@@ -35,5 +35,14 @@ fi
 mv $config ${config}.bak
 cat $template >$config
 perl aprs.pl >>$config
+
+# Check our return code; if it's non-zero let's revert to our previous config file
+rc=$?
+
+if [ $rc != 0 ]; then
+    echo "APRS Script failed, reverting"
+    mv ${config}.bak $config
+fi
+
 # Start Direwolf
 /usr/local/bin/direwolf -t 0 -c $config >/opt/direwolf/logs/direwolf.log

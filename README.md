@@ -11,7 +11,7 @@ This script is based on the ideas from Bob Bruninga (WB4APR) in http://www.aprs.
 
 ### aprsobjects.pm
 
-You will need to update aprsobjects.pm with the settings and method you wish to use to define objects.  If you want to use iCal you must set up an iCal calendar and set the public URL for it, or you can define the objects using the @objects array.  To set up iCal see the second below specific to that topic.
+You will need to update aprsobjects.pm with the settings and method you wish to use to define objects.  If you want to use iCal you must set up an iCal calendar and set the public URL for it, or you can define the objects using the @objects array.  To set up iCal see the section below specific to that topic.
 
 #### Default options
 
@@ -24,7 +24,7 @@ There are several defaults to set in the get_defaults function
  * To ensure our module fields matches our program fields, this must match the version in the main program.  This just indicates the need to ensure any fields you have defined still meet the fields the program needs.
 
 * $ical = "https://calendar.google.com/calendar/ical/....../basic.ics";
- * iCal url when using iCal as a data source for objects.  Disables the use of using the @objects array in aprsobjects.pm
+ * iCal url when using iCal as a data source for objects.  Disables the use of using the @objects array in aprsobjects.pm  If you do not want to use iCal as a source, set this to an empty string or to undef
 
 * $startinterval = '0:30';
  * How long to delay our initial beacon advertisement, in direwolf format (min:sec).  In this example, it means Direwolf will wait 30 seconds before it advertises the first object.
@@ -36,6 +36,8 @@ There are several defaults to set in the get_defaults function
  *  Define our output paths for every object that we advertise.  In this example we'll advertise to the internet (igate) and then with the WIDE1-1,WIDE2-1 path.  Adjust for your local configuration and APRS topology, such as only igate, or a more narrow digipeater path.  Be careful with the quotes around the digipeater path.
 
 #### Objects array
+
+The @objects array is how you define the APRS objects you want to advertise.  If you're using iCal there is no need to populate anything in this object.
 
 * Objects array is a pipe (|) separated list of fields
  * Leave empty for unused field, ie:  |data|data||data|data
@@ -65,7 +67,7 @@ There are several defaults to set in the get_defaults function
 
 Setting up APRS objects in the @object array can be a bit tedious and requires someone editing the file.  Using an iCal URL as a data source is potentially an easier way to define objects, and this also allows you to delegate the adding and maintaining of objects to other people as you can share your calendar with other users.  I have tested this with Google Calendar but it should work with other calendars as well.  Be aware that this data is pulled down every run, and can take several seconds to download and parse.  If you need your data to not require an internet connection it is better to use the @objects array.
 
-I have found that a dozen APRS object events with recurring settings can take a long time to parse, so the script limits the days evaluated to today and tomorrow (as events are dated as UTC, events in the evening may be dated tomorrow in the raw iCal data that is parsed).  This speeds up the parsing considerably and since we're only generally advertising for events in immediate future this is fine.  When limited to this timeframe I generally see the script take about 11s to run on a busy Raspberry Pi 2 on a day with 7 APRS objects defined but takes less than 1s on a modern desktop machine.
+I have found that a dozen APRS object events with recurring settings can take a long time to parse, so the script limits the days evaluated to today and tomorrow (as events are dated as UTC, events in the evening may be dated tomorrow in the raw iCal data that is parsed).  This speeds up the parsing considerably and since we're only generally advertising for events in the immediate future this is fine.  When limited to this timeframe I generally see the script take about 11s to run on a busy Raspberry Pi 2 on a day with 7 APRS objects defined but takes less than 1s on a modern desktop machine.
 
 #### Calendar Setup
 
@@ -73,7 +75,7 @@ Nothing really special to do for the Google Calendar setup, you can name it anyt
 
 #### APRS Object calendar entries
 
-When you create calendar entries for your APRS objects you can set the event title to anything you want, this value is not used by this script.  If the event repeats or is an all day event (ie:  A repeater, etc) select those options.  The Description is where the required fields are defined and must be set up correctly or the object won't be properly parsed.  The order of the options does not matter but they must be in the format of FIELD:DATA and separated by a new line.  These are the same fields used in the objects array, so for more details on exactly what the fields mean please see that section.  Example:
+When you create calendar entries for your APRS objects you can set the event title to anything you want, this value is not used by this script.  If the event repeats or is an all day event (ie:  a repeater, etc) select those options.  The Description is where the required fields are defined and must be set up correctly or the object won't be properly parsed.  The order of the options does not matter but they must be in the format of FIELD:DATA and separated by a new line.  These are the same fields used in the objects array, so for more details on exactly what the fields mean please see that section.  Example:
 
 TIMEBEFORE:15  
 OBJNAME:IRLP-4945  

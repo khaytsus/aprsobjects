@@ -212,8 +212,7 @@ sub ical_parse {
 
     my $file = get($url);
     if ( !defined($file) ) {
-        print "\n## iCal download failed (check URL?)\n";
-        return;
+        die "\n## iCal download failed (check URL?)\n";
     }
 
     my @returnobj;
