@@ -2,6 +2,8 @@
 
 use strict;
 use warnings;
+use FindBin;
+use lib $FindBin::Bin;
 
 our $VERSION = '1.2';
 
@@ -17,23 +19,24 @@ our $VERSION = '1.2';
 use aprsobjects;
 
 # Get default settings from our aprsobjects module
-my ( $debug, $moduleversion, $icalurl, $startinterval, $delayinterval,
-    @outputs )
-    = get_defaults();
+my $debug         = $aprsobjects::debug;
+my $moduleversion = $aprsobjects::moduleversion;
+my $icalurl       = $aprsobjects::icalurl;
+my $startinterval = $aprsobjects::startinterval;
+my $delayinterval = $aprsobjects::delayinterval;
+my @outputs       = @aprsobjects::outputs;
+my @objects       = @aprsobjects::objects;
 
 # Test to make sure our versions match so we know our fields are going to be correct
 if ( $VERSION ne $moduleversion ) {
     die 'Our program version number '
-        . $VERSION
-        . ' does not match our module version '
-        . $moduleversion . "\n";
+      . $VERSION
+      . ' does not match our module version '
+      . $moduleversion . "\n";
 }
 
 # Get our initial delay for advertisements which will be incremented for each additional object
 my $delay = $startinterval;
-
-# Create our empty objects variable to populate from our module or ical
-my @objects;
 
 # See if we're using iCal and if so, make sure iCal::Parser and LWP::Simple are available
 my $ical;
@@ -50,7 +53,8 @@ if ($icalurl) {
 }
 
 # Get the current time and set up variables to use later
-my ($lt_sec,  $lt_min,  $lt_hour, $lt_mday, $lt_mon,
+my (
+    $lt_sec,  $lt_min,  $lt_hour, $lt_mday, $lt_mon,
     $lt_year, $lt_wday, $lt_yday, $lt_isdst
 ) = localtime();
 $lt_year += 1900;
@@ -65,12 +69,12 @@ if ($ical) {
 else {
     # Get our objects from our aprsobjects module
     print "\n### Objects generated using module data\n";
-    (@objects) = get_objects();
 }
 
 # Iterate through each entry in the @objects array
 foreach my $entry (@objects) {
-    my ($DOW,       $ENABLED, $MONTH,      $DAY,     $YEAR,
+    my (
+        $DOW,       $ENABLED, $MONTH,      $DAY,     $YEAR,
         $STARTTIME, $ENDTIME, $TIMEBEFORE, $OBJNAME, $MHZ,
         $LAT,       $LON,     $FREQ,       $OFFSET,  $TONE,
         $HEIGHT,    $POWER,   $SYMBOL,     $COMMENT
@@ -104,10 +108,13 @@ foreach my $entry (@objects) {
 # Determine if this object matches the day, is an every-day object, or is dated with todays date
 # If the object is enabled make sure that dated events are only matched on their proper date regardless
 # of DOW settings, so make sure daily vs single day vs dated events are tested separately.
-    if ($ENABLED
+    if (
+        $ENABLED
 
         # This object matches a single-day event, not a dated event
-        && ((   ( $DOW eq $lt_wday && $DAY !~ /\d+/x )
+        && (
+            (
+                ( $DOW eq $lt_wday && $DAY !~ /\d+/x )
 
                 # This object matches a daily event, not a dated event
                 || ( $DOW eq "-1" && $DAY !~ /\d+/x )
@@ -116,7 +123,7 @@ foreach my $entry (@objects) {
 # If it's not a single or daily event, test to see if this object matches todays date
             || ( $MONTH eq $lt_mon && $DAY eq $lt_mday && $YEAR eq $lt_year )
         )
-        )
+      )
     {
 
 # Determine if the object should be advertised based on comparing our adjusted start time or always if start/end are 0
@@ -160,13 +167,12 @@ foreach my $entry (@objects) {
 
             # If we're a dated event
             if ( $DAY =~ /\d+/x ) {
-                $datestring
-                    = ' ('
-                    . $MONTH . '/'
-                    . $DAY . '/'
-                    . $YEAR . ') ('
-                    . $STARTTIME . ' - '
-                    . $ENDTIME . ') ';
+                $datestring = ' ('
+                  . $MONTH . '/'
+                  . $DAY . '/'
+                  . $YEAR . ') ('
+                  . $STARTTIME . ' - '
+                  . $ENDTIME . ') ';
 
             }
 
@@ -174,25 +180,25 @@ foreach my $entry (@objects) {
 
             foreach my $output (@outputs) {
                 print 'OBEACON '
-                    . $output
-                    . ' DELAY='
-                    . $delay
-                    . ' EVERY='
-                    . $FREQ
-                    . ' OBJNAME='
-                    . $OBJNAME . ' LAT='
-                    . $LAT
-                    . ' LONG='
-                    . $LON
-                    . ' SYMBOL='
-                    . $SYMBOL
-                    . ' FREQ='
-                    . $MHZ
-                    . $offset_string
-                    . $tone_string
-                    . $height_string
-                    . $power_string
-                    . $comment_string . "\n";
+                  . $output
+                  . ' DELAY='
+                  . $delay
+                  . ' EVERY='
+                  . $FREQ
+                  . ' OBJNAME='
+                  . $OBJNAME . ' LAT='
+                  . $LAT
+                  . ' LONG='
+                  . $LON
+                  . ' SYMBOL='
+                  . $SYMBOL
+                  . ' FREQ='
+                  . $MHZ
+                  . $offset_string
+                  . $tone_string
+                  . $height_string
+                  . $power_string
+                  . $comment_string . "\n";
 
 # Update the delay value so each object advertises $delayinterval seconds after the previous one
                 $delay = update_delay( $delay, $delayinterval );
@@ -225,7 +231,7 @@ sub ical_parse {
     my $parser   = iCal::Parser->new(%defaults);
     my $hash     = $parser->parse_strings($file);
 
-   # Get the events for today (specifically; ignore the rest of the iCal data)
+    # Get the events for today (specifically; ignore the rest of the iCal data)
     my $todayhash  = $hash->{events}->{$lt_year}->{$lt_mon}->{$lt_mday};
     my @todayarray = $todayhash;
 
@@ -282,7 +288,8 @@ sub ical_parse {
 
 # Build a string of this objects fields
 sub build_object {
-    my ($start, $end,  $allday, $dow, $month,
+    my (
+        $start, $end,  $allday, $dow, $month,
         $day,   $year, $TRANSP, $DESCRIPTION
     ) = @_;
 
@@ -314,7 +321,8 @@ sub split_description {
     # We literally get the string \n for carriage returns here.  Yuck?
     my (@description) = split( /\\n/xs, $description );
 
-    my ($timebefore, $objname, $mhz,    $lat,   $lon,    $freq,
+    my (
+        $timebefore, $objname, $mhz,    $lat,   $lon,    $freq,
         $offset,     $tone,    $height, $power, $symbol, $comment
     );
 
